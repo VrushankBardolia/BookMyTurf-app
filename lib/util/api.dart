@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../model/turf.dart';
 
-final API = "http://10.122.141.58/bmt-api";
+final API = "http://10.79.200.58/bmt-api";
 
 // CUSTOMER LOGIN
 Future<Map<String, dynamic>> customerLogin(String email, String password) async {
@@ -118,14 +118,27 @@ Future<List<Turf>> getMyTurfs(int id) async {
   final url = Uri.parse("$API/turfs/my_turfs.php?id=$id");
   final response = await http.get(url);
   print(response.body);
+
   if (response.statusCode == 200) {
     final body = jsonDecode(response.body);
     print(body);
-    if (body['status'] == 'success' && body['data'] != null) {
-      return (body['data'] as List)
-          .map((t) => Turf.fromJson(t))
-          .toList();
+
+    final status = body['status'];
+
+    if (status == 'success') {
+      final data = body['data'];
+      if (data is List) {
+        return data.map((t) => Turf.fromJson(t)).toList();
+      } else {
+        return [];
+      }
+    } else if (status == 'empty') {
+      // When no turfs found
+      print("No turfs found for this owner.");
+      return [];
     } else {
+      // Unexpected response
+      print("Unexpected status: $status");
       return [];
     }
   } else {
@@ -208,5 +221,40 @@ Future<Map<String, dynamic>> addTurf({
   } catch (e) {
     print("Request Error: $e");
     return {'status': 'error', 'message': e.toString()};
+  }
+}
+
+// GET TURF BY ID
+Future<Turf> getTurfById(int id) async {
+  final url = Uri.parse("$API/turfs/get_turf_details.php?id=$id");
+  final response = await http.get(url);
+  print(response.body);
+
+  if(response.statusCode==200){
+    final body = jsonDecode(response.body);
+    if(body['status']=='success'){
+      return Turf.fromJson(body['data']);
+    } else{
+      throw Exception(body['message']);
+    }
+  } else {
+    throw Exception("Failed to find turf");
+  }
+}
+
+Future<List<Map<String, dynamic>>> fetchSlots(int turfId, String date) async {
+  final url = Uri.parse('$API/turfs/get_slots.php?turf_id=$turfId&date=$date');
+  print("📡 Fetching slots from: $url");
+  final res = await http.get(url);
+  print("📥 Response: ${res.body}");
+
+  if (res.statusCode == 200) {
+    final data = jsonDecode(res.body);
+    print("✅ Decoded JSON: $data");
+    final List slots = data['slots'] ?? [];
+    return slots.map((e) => Map<String, dynamic>.from(e)).toList();
+  } else {
+    print("❌ Failed with status ${res.statusCode}");
+    throw Exception("Failed to fetch slots");
   }
 }

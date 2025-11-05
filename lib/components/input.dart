@@ -9,6 +9,8 @@ class Input extends StatelessWidget {
   final String? trailingText;
   final bool isPassword;
   final String? Function(String?)? validator;
+  final Color? bgColor;
+  final bool? editable;
 
   const Input({
     super.key,
@@ -18,7 +20,9 @@ class Input extends StatelessWidget {
     this.leading,
     this.trailingText,
     required this.type,
-    this.validator
+    this.validator,
+    this.bgColor,
+    this.editable = true
   });
 
   @override
@@ -30,10 +34,11 @@ class Input extends StatelessWidget {
       keyboardType: type,
       onTapOutside: (e)=>FocusScope.of(context).unfocus(),
       obscureText: isPassword,
+      readOnly: !editable!,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16,),
         filled: true,
-        fillColor: BMTTheme.background,
+        fillColor: bgColor ?? BMTTheme.background,
         border: OutlineInputBorder(
           borderSide: BorderSide.none,
           borderRadius: BorderRadius.all(Radius.circular(8)),

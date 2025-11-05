@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../components/turf_card.dart';
 import '../../util/api.dart';
 import '../../model/turf.dart';
+import '../turf_details.dart';
 
 class ExploreTurfs extends StatefulWidget {
   const ExploreTurfs({super.key});
@@ -18,6 +19,13 @@ class _ExploreTurfsState extends State<ExploreTurfs> {
   void initState() {
     super.initState();
     futureTurfs = exploreTurfs();
+  }
+
+  Future<void> _navigateToTurfDetails(int tid) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => TurfDetails(id: tid,)),
+    );
   }
 
   @override
@@ -43,7 +51,14 @@ class _ExploreTurfsState extends State<ExploreTurfs> {
           final turfs = snapshot.data!;
           return ListView.builder(
             itemCount: turfs.length,
-            itemBuilder: (context, index) => TurfCard(turf: turfs[index]),
+            itemBuilder: (context, index){
+              return GestureDetector(
+                onTap: ()=> Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => TurfDetails(id: turfs[index].id,)),
+                ),
+                child: TurfCard(turf: turfs[index]),
+              );
+            },
           );
         },
       ),

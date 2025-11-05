@@ -23,7 +23,7 @@ class Turf {
   final List<String> amenities;
   final String createdAt;
   final String updatedAt;
-  final TurfOwner? owner; // nullable
+  final TurfOwner? owner;
 
   Turf({
     required this.id,

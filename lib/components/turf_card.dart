@@ -23,12 +23,18 @@ class TurfCard extends StatelessWidget {
             borderRadius: BorderRadiusGeometry.only(
               topLeft: Radius.circular(12), topRight: Radius.circular(12),
             ),
-            child: CachedNetworkImage(imageUrl: "$API/turfImages/${turf.image}",
+            child: Image.network(
+              "$API/turfImages/${turf.image}",
               height: 200,
               width: MediaQuery.of(context).size.width,
               fit: BoxFit.cover,
-              errorWidget: (context, url, error) => Center(child: Text(error.toString())),
             ),
+            // CachedNetworkImage(imageUrl: "$API/turfImages/${turf.image}",
+            //   height: 200,
+            //   width: MediaQuery.of(context).size.width,
+            //   fit: BoxFit.cover,
+            //   errorWidget: (context, url, error) => Center(child: Text(error.toString())),
+            // ),
           ),
           ListTile(
             title: Text(turf.name,

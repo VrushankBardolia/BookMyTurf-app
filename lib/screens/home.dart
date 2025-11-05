@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '/screens/customer/profile.dart';
+import 'profile.dart';
 import '/screens/turfowner/my_turfs.dart';
 import '/screens/customer/explore_turfs.dart';
 import '/util/colors.dart';
