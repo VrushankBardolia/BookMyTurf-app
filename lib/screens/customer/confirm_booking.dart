@@ -58,7 +58,6 @@ class _ConfirmBookingState extends State<ConfirmBooking> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     getData();
   }
@@ -137,9 +136,17 @@ class _ConfirmBookingState extends State<ConfirmBooking> {
             ),
             Button(
               text: "Pay advance",
-              onClick: ()=>Navigator.push(context,
-                MaterialPageRoute(builder: (context)=>
-                    Payment(turf: widget.turf, advance: advance,),
+              onClick: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Payment(
+                    turf: widget.turf,
+                    advance: advance,
+                    date: widget.date,
+                    start: widget.start,
+                    end: widget.end,
+                    duration: widget.duration,
+                  ),
                 ),
               ),
             ),

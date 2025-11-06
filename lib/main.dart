@@ -4,6 +4,7 @@ import '/util/colors.dart';
 import '/util/first_screen_navigator.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized(); // ✅ ensures plugin channel setup
   runApp(const MyApp());
 }
 

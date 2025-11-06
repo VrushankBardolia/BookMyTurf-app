@@ -2,33 +2,42 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 import '../model/turf.dart';
 
-final API = "http://10.79.200.58/bmt-api";
+final API = "http://10.138.64.58/bmt-api";
 
 // CUSTOMER LOGIN
-Future<Map<String, dynamic>> customerLogin(String email, String password) async {
+Future<Map<String, dynamic>> customerLogin(
+  String email,
+  String password,
+) async {
   final url = Uri.parse("$API/auth/customer_login.php");
 
   final response = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'email': email,
-      'password': password,
-    }),
+    body: jsonEncode({'email': email, 'password': password}),
   );
 
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
   } else {
-    return {'status': 'error', 'message': 'Server error: ${response.statusCode}'};
+    return {
+      'status': 'error',
+      'message': 'Server error: ${response.statusCode}',
+    };
   }
 }
 
 // CUSTOMER SIGNUP
-Future<Map<String, dynamic>> customerSignup(String fullname, String email, String phone, String password) async {
+Future<Map<String, dynamic>> customerSignup(
+  String fullname,
+  String email,
+  String phone,
+  String password,
+) async {
   final url = Uri.parse("$API/auth/customer_signup.php");
 
   final response = await http.post(
@@ -45,32 +54,43 @@ Future<Map<String, dynamic>> customerSignup(String fullname, String email, Strin
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
   } else {
-    return {'status': 'error', 'message': 'Server error: ${response.statusCode}'};
+    return {
+      'status': 'error',
+      'message': 'Server error: ${response.statusCode}',
+    };
   }
 }
 
 // TURFOWNER LOGIN
-Future<Map<String, dynamic>> turfownerLogin(String email, String password) async {
+Future<Map<String, dynamic>> turfownerLogin(
+  String email,
+  String password,
+) async {
   final url = Uri.parse("$API/auth/turfowner_login.php");
 
   final response = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'email': email,
-      'password': password,
-    }),
+    body: jsonEncode({'email': email, 'password': password}),
   );
 
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
   } else {
-    return {'status': 'error', 'message': 'Server error: ${response.statusCode}'};
+    return {
+      'status': 'error',
+      'message': 'Server error: ${response.statusCode}',
+    };
   }
 }
 
 // CUSTOMER SIGNUP
-Future<Map<String, dynamic>> turfownerSignup(String name, String email, String phone, String password) async {
+Future<Map<String, dynamic>> turfownerSignup(
+  String name,
+  String email,
+  String phone,
+  String password,
+) async {
   final url = Uri.parse("$API/auth/turfowner_signup.php");
 
   final response = await http.post(
@@ -87,7 +107,10 @@ Future<Map<String, dynamic>> turfownerSignup(String name, String email, String p
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
   } else {
-    return {'status': 'error', 'message': 'Server error: ${response.statusCode}'};
+    return {
+      'status': 'error',
+      'message': 'Server error: ${response.statusCode}',
+    };
   }
 }
 
@@ -101,9 +124,7 @@ Future<List<Turf>> exploreTurfs() async {
     final body = jsonDecode(response.body);
     print(body);
     if (body['status'] == 'success' && body['data'] != null) {
-      return (body['data'] as List)
-          .map((t) => Turf.fromJson(t))
-          .toList();
+      return (body['data'] as List).map((t) => Turf.fromJson(t)).toList();
     } else {
       return [];
     }
@@ -230,11 +251,11 @@ Future<Turf> getTurfById(int id) async {
   final response = await http.get(url);
   print(response.body);
 
-  if(response.statusCode==200){
+  if (response.statusCode == 200) {
     final body = jsonDecode(response.body);
-    if(body['status']=='success'){
+    if (body['status'] == 'success') {
       return Turf.fromJson(body['data']);
-    } else{
+    } else {
       throw Exception(body['message']);
     }
   } else {
@@ -242,19 +263,58 @@ Future<Turf> getTurfById(int id) async {
   }
 }
 
-Future<List<Map<String, dynamic>>> fetchSlots(int turfId, String date) async {
-  final url = Uri.parse('$API/turfs/get_slots.php?turf_id=$turfId&date=$date');
-  print("📡 Fetching slots from: $url");
-  final res = await http.get(url);
-  print("📥 Response: ${res.body}");
+Future<List<Map<String, dynamic>>> fetchSlots(int turfId, String selectedDate) async {
+  final formattedDate = DateFormat('yyyy-MM-dd').format(
+    DateFormat('d/M/yyyy').parse(selectedDate),
+  );
 
-  if (res.statusCode == 200) {
-    final data = jsonDecode(res.body);
-    print("✅ Decoded JSON: $data");
-    final List slots = data['slots'] ?? [];
-    return slots.map((e) => Map<String, dynamic>.from(e)).toList();
+  final response = await http.get(
+    Uri.parse('$API/turfs/get_slots.php?turf_id=$turfId&date=$formattedDate'),
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    if (data['status'] == 'success') {
+      return List<Map<String, dynamic>>.from(data['slots']);
+    } else {
+      throw Exception('No slots found');
+    }
   } else {
-    print("❌ Failed with status ${res.statusCode}");
-    throw Exception("Failed to fetch slots");
+    throw Exception('Failed to fetch slots');
+  }
+}
+
+
+
+Future<Map<String, dynamic>> bookSlot({
+  required int turfId,
+  required String email,
+  required String date,
+  required String startTime,
+  required String endTime,
+  required int duration,
+  required int totalAmount,
+  required int advanceAmount,
+}) async {
+  final url = Uri.parse("$API/customer/booking.php");
+  final response = await http.post(
+    url,
+    headers: {"Content-Type": "application/json"},
+    body: jsonEncode({
+      "turf_id": turfId,
+      "email": email,
+      "date": date,
+      "start_time": startTime,
+      "end_time": endTime,
+      "duration": duration,
+      "total_amount": totalAmount,
+      "advance_amount": advanceAmount,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception("Failed to book slot");
   }
 }

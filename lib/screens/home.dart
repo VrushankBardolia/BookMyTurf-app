@@ -65,10 +65,10 @@ class _HomeState extends State<Home> {
             MyTurfs(),
           // CircularProgressIndicator(),
 
-          // ==> FIRST TAB
+          // ==> SECOND TAB
           Center(child: Text("Bookings Page")),
 
-          // ==> FIRST TAB
+          // ==> THIRD TAB
           // Center(child: Text("Profile Page")),
           if(type == "guest")
             Center(child: Text("Profile Page")),

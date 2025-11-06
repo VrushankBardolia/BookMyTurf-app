@@ -21,17 +21,10 @@ class _ExploreTurfsState extends State<ExploreTurfs> {
     futureTurfs = exploreTurfs();
   }
 
-  Future<void> _navigateToTurfDetails(int tid) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => TurfDetails(id: tid,)),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
       child: FutureBuilder<List<Turf>>(
         future: futureTurfs,
         builder: (context, snapshot) {
@@ -49,12 +42,13 @@ class _ExploreTurfsState extends State<ExploreTurfs> {
           }
 
           final turfs = snapshot.data!;
-          return ListView.builder(
+          return ListView.separated(
             itemCount: turfs.length,
+            separatorBuilder: (context, index)=>SizedBox(height: 16,),
             itemBuilder: (context, index){
               return GestureDetector(
                 onTap: ()=> Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => TurfDetails(id: turfs[index].id,)),
+                  MaterialPageRoute(builder: (context) => TurfDetails(turf: turfs[index])),
                 ),
                 child: TurfCard(turf: turfs[index]),
               );

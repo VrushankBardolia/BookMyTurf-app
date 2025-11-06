@@ -46,8 +46,6 @@ class Turf {
     this.owner,
   });
 
-
-
   factory Turf.fromJson(Map<String, dynamic> json) {
     return Turf(
       id: parseInt(json['id']),
@@ -58,7 +56,7 @@ class Turf {
       fullAddress: json['full_address'] ?? '',
       length: parseInt(json['length']),
       width: parseInt(json['width']),
-      mapLink: json['google_map_link']?.toString(),
+      mapLink: json['map_link']?.toString(),
       openingTime: json['opening_time'] ?? '',
       closingTime: json['closing_time'] ?? '',
       pricePerHour: parseInt(json['price_per_hour']),

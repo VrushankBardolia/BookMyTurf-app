@@ -49,10 +49,10 @@ class _MyTurfsState extends State<MyTurfs> {
     _loadTurfs(); // reload list after returning
   }
 
-  Future<void> _navigateToTurfDetails(int tid) async {
+  Future<void> _navigateToTurfDetails(Turf turf) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => TurfDetails(id: tid,)),
+      MaterialPageRoute(builder: (context) => TurfDetails(turf: turf,)),
     );
     _loadTurfs(); // reload list after returning
   }
@@ -107,11 +107,12 @@ class _MyTurfsState extends State<MyTurfs> {
             }
 
             // ✅ List of Turfs
-            return ListView.builder(
+            return ListView.separated(
               itemCount: turfs.length,
+              separatorBuilder: (context, index)=>SizedBox(height: 16,),
               itemBuilder: (context, index){
                 return GestureDetector(
-                  onTap: ()=> _navigateToTurfDetails(turfs[index].id),
+                  onTap: ()=> _navigateToTurfDetails(turfs[index]),
                   child: TurfCard(turf: turfs[index]),
                 );
               },
