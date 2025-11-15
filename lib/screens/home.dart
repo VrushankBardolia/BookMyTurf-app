@@ -1,3 +1,4 @@
+import 'package:book_my_turf/screens/customer/my_bookings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -66,7 +67,13 @@ class _HomeState extends State<Home> {
           // CircularProgressIndicator(),
 
           // ==> SECOND TAB
-          Center(child: Text("Bookings Page")),
+          // Center(child: Text("Bookings Page")),
+          if(type == "customer")
+            MyBookings(),
+          if(type == "turfowner")
+            Center(child: Text("Turfowner bookings")),
+          if(type == "guest")
+            Center(child: Text("Guest Page")),
 
           // ==> THIRD TAB
           // Center(child: Text("Profile Page")),
@@ -81,7 +88,7 @@ class _HomeState extends State<Home> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: BMTTheme.brand.withOpacity(0.25),
+              color: BMTTheme.brand.withValues(alpha: 0.25),
               offset: Offset(0, -8),
               blurRadius: 40,
             )
@@ -90,7 +97,7 @@ class _HomeState extends State<Home> {
         child: NavigationBar(
           backgroundColor: BMTTheme.black,
           elevation: 0,
-          indicatorColor: BMTTheme.brand.withOpacity(0.4),
+          indicatorColor: BMTTheme.brand.withValues(alpha: 0.4),
           selectedIndex: _selectedIndex,
           onDestinationSelected: (index) {
             setState((){

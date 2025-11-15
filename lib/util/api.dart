@@ -284,8 +284,6 @@ Future<List<Map<String, dynamic>>> fetchSlots(int turfId, String selectedDate) a
   }
 }
 
-
-
 Future<Map<String, dynamic>> bookSlot({
   required int turfId,
   required String email,
@@ -316,5 +314,28 @@ Future<Map<String, dynamic>> bookSlot({
     return jsonDecode(response.body);
   } else {
     throw Exception("Failed to book slot");
+  }
+}
+
+Future<List<Map<String, dynamic>>> fetchCustomerBookings(String email) async {
+  final url = Uri.parse('$API/customer/get_bookings.php?email=$email');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final body = response.body.trim();
+
+    if (!body.startsWith('{') && !body.startsWith('[')) {
+      throw Exception("Invalid JSON response: $body");
+    }
+
+    final data = jsonDecode(body);
+
+    if (data['status'] == 'success') {
+      return List<Map<String, dynamic>>.from(data['bookings']);
+    } else {
+      return [];
+    }
+  } else {
+    throw Exception("Failed to fetch bookings: ${response.statusCode}");
   }
 }
