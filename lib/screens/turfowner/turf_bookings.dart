@@ -1,20 +1,20 @@
+import 'package:book_my_turf/util/api.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../util/api.dart';
 import '../../util/colors.dart';
 
-class MyBookings extends StatefulWidget {
-  const MyBookings({super.key});
+class TurfBookings extends StatefulWidget {
+  const TurfBookings({super.key});
 
   @override
-  State<MyBookings> createState() => _MyBookingsState();
+  State<TurfBookings> createState() => _TurfBookingsState();
 }
 
-class _MyBookingsState extends State<MyBookings> {
+class _TurfBookingsState extends State<TurfBookings> {
   String? userEmail;
 
   Future<void> fetchUserEmail() async {
@@ -23,6 +23,7 @@ class _MyBookingsState extends State<MyBookings> {
       userEmail = prefs.getString("email");
     });
   }
+
 
   String formatDisplayDate(String yyyyMMdd) {
     final date = DateTime.parse(yyyyMMdd);
@@ -49,10 +50,9 @@ class _MyBookingsState extends State<MyBookings> {
     if (userEmail == null) {
       return const Center(child: CircularProgressIndicator());
     }
-
     return FutureBuilder(
-      future: fetchCustomerBookings(userEmail!),
-      builder: (context, snapshot) {
+      future: fetchTurfBookings(userEmail!),
+      builder: (context, snapshot){
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -68,11 +68,13 @@ class _MyBookingsState extends State<MyBookings> {
 
         final bookings = snapshot.data!;
 
+
         return ListView.builder(
           itemCount: bookings.length,
           itemBuilder: (context, i) {
             final booking = bookings[i];
             final turf = booking['turf'];
+            final customer = booking['customer'];
             return Container(
               margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
@@ -84,7 +86,7 @@ class _MyBookingsState extends State<MyBookings> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Turf name + Status badge
+                  // TURF NAME & STATUS BADGE
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -101,10 +103,62 @@ class _MyBookingsState extends State<MyBookings> {
                     ],
                   ),
 
-                  // SizedBox(height: 4),
+                  // TURF ADDRESS
                   Text(turf['address'], style: TextStyle(color: BMTTheme.white.withValues(alpha: 0.7)),),
                   SizedBox(height: 4),
 
+                  // CUSTOMER DETAILS
+                  Text("Customer Details", style: TextStyle(color: BMTTheme.white50)),
+
+                  // CUSTOMER NAME
+                  Row(
+                    children: [
+                      Icon(CupertinoIcons.person, color: BMTTheme.brand, size: 20),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(customer['name'],
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+
+                  // CUSTOMER PHONE
+                  InkWell(
+                    onTap: () => launchUrl(Uri(scheme: 'tel', path: customer['phone'])),
+                    child: Row(
+                      children: [
+                        Icon(CupertinoIcons.phone, color: BMTTheme.brand, size: 20),
+                        SizedBox(width: 8),
+                        Text("+91 ${customer['phone']}",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 4),
+
+                  // CUSTOMER EMAIL
+                  Row(
+                    children: [
+                      Icon(CupertinoIcons.mail, color: BMTTheme.brand, size: 20),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(customer['email'],
+                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // DIVIDER
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Divider(color: BMTTheme.white.withValues(alpha: 0.3)),
+                  ),
+
+                  // DATE, SLOT TIMING & DURATION
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -152,12 +206,13 @@ class _MyBookingsState extends State<MyBookings> {
                     ],
                   ),
 
+                  // DIVIDER
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Divider(color: BMTTheme.white.withValues(alpha: 0.3)),
                   ),
 
-                  // Amount information
+                  // AMOUNT INFO
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -178,38 +233,19 @@ class _MyBookingsState extends State<MyBookings> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text("Advance Paid", style: TextStyle(color: BMTTheme.white50)),
+                          Text("Remaining Amount", style: TextStyle(color: BMTTheme.white50)),
                           // SizedBox(height: 4),
                           Text("₹${booking['advance_amount']}",
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                              color: BMTTheme.brand,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.redAccent,
                             ),
                           ),
                         ],
                       ),
                     ],
                   ),
-
-                  // GOOGLE MAP LINK BUTTON
-                  if (turf['map_link'] != null && turf['map_link'].toString().isNotEmpty)
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton.icon(
-                        onPressed: () {
-                          launchUrl(Uri.parse(turf['map_link']), mode: LaunchMode.externalApplication);
-                        },
-                        icon: Icon(CupertinoIcons.map, color: BMTTheme.brand),
-                        label: Text("Open in Google Maps",
-                          style: TextStyle(
-                            color: BMTTheme.brand,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             );
@@ -249,5 +285,4 @@ class _MyBookingsState extends State<MyBookings> {
       ),
     );
   }
-
 }

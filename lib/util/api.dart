@@ -317,8 +317,33 @@ Future<Map<String, dynamic>> bookSlot({
   }
 }
 
+// FETCH BOOKINGS (CUSTOMER SIDE)
 Future<List<Map<String, dynamic>>> fetchCustomerBookings(String email) async {
   final url = Uri.parse('$API/customer/get_bookings.php?email=$email');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final body = response.body.trim();
+
+    if (!body.startsWith('{') && !body.startsWith('[')) {
+      throw Exception("Invalid JSON response: $body");
+    }
+
+    final data = jsonDecode(body);
+
+    if (data['status'] == 'success') {
+      return List<Map<String, dynamic>>.from(data['bookings']);
+    } else {
+      return [];
+    }
+  } else {
+    throw Exception("Failed to fetch bookings: ${response.statusCode}");
+  }
+}
+
+// FETCH BOOKINGS (TURFOWNER SIDE)
+Future<List<Map<String, dynamic>>> fetchTurfBookings(String email) async {
+  final url = Uri.parse('$API/turfs/get_bookings.php?email=$email');
   final response = await http.get(url);
 
   if (response.statusCode == 200) {

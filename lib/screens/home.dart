@@ -1,11 +1,13 @@
-import 'package:book_my_turf/screens/customer/my_bookings.dart';
+import 'package:book_my_turf/screens/customer/search.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'profile.dart';
-import '/screens/turfowner/my_turfs.dart';
 import '/screens/customer/explore_turfs.dart';
+import '/screens/customer/my_bookings.dart';
+import '/screens/turfowner/my_turfs.dart';
+import '/screens/turfowner/turf_bookings.dart';
+import 'profile.dart';
 import '/util/colors.dart';
 
 class Home extends StatefulWidget {
@@ -25,7 +27,7 @@ class _HomeState extends State<Home> {
     setState(() {
       type = preps.getString("type") ?? "guest";
     });
-    print(type);
+    debugPrint(type);
     setAppbarTitle();
   }
 
@@ -51,9 +53,18 @@ class _HomeState extends State<Home> {
     return Scaffold(
 
       appBar: AppBar(
-        title: Text(appbarTitle, style: TextStyle(fontSize: 20),),
+        title: Text(appbarTitle),
         elevation: 0,
         scrolledUnderElevation: 0,
+        actions: [
+          if(_selectedIndex == 0 && type != "turfowner")
+            IconButton(
+              onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>Search()));
+              },
+              icon: Icon(Icons.search),
+            ),
+        ],
       ),
 
       body: IndexedStack(
@@ -67,16 +78,14 @@ class _HomeState extends State<Home> {
           // CircularProgressIndicator(),
 
           // ==> SECOND TAB
-          // Center(child: Text("Bookings Page")),
           if(type == "customer")
             MyBookings(),
           if(type == "turfowner")
-            Center(child: Text("Turfowner bookings")),
+            TurfBookings(),
           if(type == "guest")
             Center(child: Text("Guest Page")),
 
           // ==> THIRD TAB
-          // Center(child: Text("Profile Page")),
           if(type == "guest")
             Center(child: Text("Profile Page")),
           if(type == "turfowner" || type == "customer")
