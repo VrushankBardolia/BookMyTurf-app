@@ -1,8 +1,8 @@
-import 'package:book_my_turf/screens/turf_details.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '/components/buttons.dart';
+
+import '/screens/turfowner/edit_turf.dart';
 import '/util/colors.dart';
 import '/screens/turfowner/add_turf.dart';
 import '/util/api.dart';
@@ -46,27 +46,27 @@ class _MyTurfsState extends State<MyTurfs> {
       context,
       MaterialPageRoute(builder: (context) => const AddTurf()),
     );
-    _loadTurfs(); // reload list after returning
+    _loadTurfs();
   }
 
-  Future<void> _navigateToTurfDetails(Turf turf) async {
+  Future<void> _navigateToTurfEdit(Turf turf) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => TurfDetails(turf: turf,)),
+      MaterialPageRoute(builder: (context) => EditTurf(turf: turf,)),
     );
-    _loadTurfs(); // reload list after returning
+    _loadTurfs();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 32),
         child: FutureBuilder<List<Turf>>(
           future: futureTurfs,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+            if (snapshot.connectionState == ConnectionState.waiting || futureTurfs == null) {
+              return Center(child: CircularProgressIndicator(color: BMTTheme.brand));
             }
 
             if (snapshot.hasError) {
@@ -80,28 +80,42 @@ class _MyTurfsState extends State<MyTurfs> {
 
             final turfs = snapshot.data ?? [];
 
-            // ✅ Empty State
-            if (turfs.isEmpty && snapshot.connectionState==ConnectionState.done) {
+            // -----------------------------------------------------------------
+            // ✅ Empty State (Highly Enhanced)
+            // -----------------------------------------------------------------
+            if (turfs.isEmpty && snapshot.connectionState == ConnectionState.done) {
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Let’s get started",
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w600,
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.sports_soccer_outlined, size: 80, color: BMTTheme.brand.withValues(alpha: 0.7)),
+                      const SizedBox(height: 24),
+                      const Text("No Turfs Listed Yet!",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    // const SizedBox(height: 8),
-                    const Text("Add your first turf now!",
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    const SizedBox(height: 16),
-                    Button(
-                      text: "Add your first turf",
-                      onClick: _navigateToAddTurf,
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Text("It looks like you haven't added any properties. Start managing your bookings by listing your first turf.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: BMTTheme.white50),
+                      ),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: 250, // Constrain button width
+                        child: Button(
+                          text: "Add Your First Turf",
+                          onClick: _navigateToAddTurf,
+                          backColor: BMTTheme.brand,
+                          textColor: BMTTheme.black, // Dark text on brand background
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
@@ -109,10 +123,11 @@ class _MyTurfsState extends State<MyTurfs> {
             // ✅ List of Turfs
             return ListView.separated(
               itemCount: turfs.length,
+              padding: const EdgeInsets.only(bottom: 100),
               separatorBuilder: (context, index)=>SizedBox(height: 16,),
               itemBuilder: (context, index){
                 return GestureDetector(
-                  onTap: ()=> _navigateToTurfDetails(turfs[index]),
+                  onTap: ()=> _navigateToTurfEdit(turfs[index]),
                   child: TurfCard(turf: turfs[index]),
                 );
               },

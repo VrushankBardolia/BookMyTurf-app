@@ -364,3 +364,88 @@ Future<List<Map<String, dynamic>>> fetchTurfBookings(String email) async {
     throw Exception("Failed to fetch bookings: ${response.statusCode}");
   }
 }
+
+// SEARCH TURF
+Future<List<dynamic>> searchTurfs(String query) async {
+  final url = Uri.parse("$API/customer/search_turf.php?q=$query");
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final body = jsonDecode(response.body);
+
+    if (body["status"] == "success") {
+      return body["results"];
+    } else {
+      return [];
+    }
+  } else {
+    throw Exception("Search failed");
+  }
+}
+
+// DELETE TURF
+Future<Map<String, dynamic>> deleteTurf(int id) async {
+  final url = Uri.parse("$API/turfs/delete_turf.php");
+
+  final response = await http.post(url,
+    body: {"id": id.toString()},
+  );
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception("Failed to delete turf");
+  }
+}
+
+
+// UPDATE TURF
+Future<Map<String, dynamic>> updateTurf({
+  required int id,
+  required String name,
+  required String area,
+  required String fullAddress,
+  required String mapLink,
+  required int pricePerHour,
+  required int length,
+  required int width,
+  required String phone,
+  required List<String> amenities,
+  required String oldImage,
+  required String openingTime,
+  required String closingTime,
+  File? imageFile,
+}) async {
+  final url = Uri.parse("$API/turfs/edit_turf.php");
+
+  final request = http.MultipartRequest("POST", url);
+
+  request.fields['id'] = id.toString();
+  request.fields['name'] = name;
+  request.fields['area'] = area;
+  request.fields['full_address'] = fullAddress;
+  request.fields['google_map_link'] = mapLink;
+  request.fields['price_per_hour'] = pricePerHour.toString();
+  request.fields['length'] = length.toString();
+  request.fields['width'] = width.toString();
+  request.fields['phone'] = phone;
+  request.fields['amenities'] = jsonEncode(amenities);
+  request.fields['old_image'] = oldImage;
+
+  // 👉 NEW FIELDS
+  request.fields['opening_time'] = openingTime;
+  request.fields['closing_time'] = closingTime;
+
+  if (imageFile != null) {
+    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+  }
+
+  final response = await request.send();
+  final responseBody = await response.stream.bytesToString();
+
+  if (response.statusCode == 200) {
+    return jsonDecode(responseBody);
+  } else {
+    throw Exception("Failed to update turf");
+  }
+}

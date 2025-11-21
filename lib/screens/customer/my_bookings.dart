@@ -72,154 +72,218 @@ class _MyBookingsState extends State<MyBookings> {
           itemCount: bookings.length,
           itemBuilder: (context, i) {
             final booking = bookings[i];
-            final turf = booking['turf'];
-            return Container(
-              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: BMTTheme.black,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: BMTTheme.brand.withValues(alpha: 0.3)),
-              ),
-              padding: EdgeInsets.fromLTRB(12,12,12,8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Turf name + Status badge
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(turf['name'],
-                          style: TextStyle(
-                            color: BMTTheme.brand,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      _buildDateBadge(booking['date']),
-                    ],
-                  ),
-
-                  // SizedBox(height: 4),
-                  Text(turf['address'], style: TextStyle(color: BMTTheme.white.withValues(alpha: 0.7)),),
-                  SizedBox(height: 4),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(CupertinoIcons.calendar_today, color: BMTTheme.brand, size: 20),
-                              SizedBox(width: 8),
-                              Text(formatDisplayDate(booking['date']),
-                                style: TextStyle(fontSize: 16, color: Colors.white),
-                              )
-                            ],
-                          ),
-
-                          SizedBox(height: 8),
-
-                          // Booking Time Row
-                          Row(
-                            children: [
-                              Icon(CupertinoIcons.clock, color: BMTTheme.brand, size: 20),
-                              SizedBox(width: 8),
-                              Text("${formatDisplayTime(booking['start_time'])} → ${formatDisplayTime(booking['end_time'])}",
-                                style: TextStyle(fontSize: 16, color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-
-                      // DURATION
-                      Column(
-                        children: [
-                          Text("Duration"),
-                          Row(
-                            children: [
-                              Icon(CupertinoIcons.alarm,size: 20, color: BMTTheme.brand,),
-                              SizedBox(width: 8,),
-                              Text("${booking['duration'].toString()} hr",style: TextStyle(fontSize: 16),),
-                            ],
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Divider(color: BMTTheme.white.withValues(alpha: 0.3)),
-                  ),
-
-                  // Amount information
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Total Amount", style: TextStyle(color: BMTTheme.white50)),
-                          // SizedBox(height: 4),
-                          Text("₹${booking['total_amount']}",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text("Advance Paid", style: TextStyle(color: BMTTheme.white50)),
-                          // SizedBox(height: 4),
-                          Text("₹${booking['advance_amount']}",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                              color: BMTTheme.brand,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  // GOOGLE MAP LINK BUTTON
-                  if (turf['map_link'] != null && turf['map_link'].toString().isNotEmpty)
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton.icon(
-                        onPressed: () {
-                          launchUrl(Uri.parse(turf['map_link']), mode: LaunchMode.externalApplication);
-                        },
-                        icon: Icon(CupertinoIcons.map, color: BMTTheme.brand),
-                        label: Text("Open in Google Maps",
-                          style: TextStyle(
-                            color: BMTTheme.brand,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            );
+            return bookingCard(booking);
           },
         );
       },
     );
   }
 
-  Widget _buildDateBadge(String dateStr) {
+  // --- Helper Widget for the Booking Card ---
+  Widget bookingCard(Map<String, dynamic> booking) {
+    final turf = booking['turf'];
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        // Use a slightly lighter dark color for the card background for contrast
+        color: BMTTheme.black,
+        borderRadius: BorderRadius.circular(20),
+        // Subtle shadow for depth
+        boxShadow: [
+          BoxShadow(
+            color: BMTTheme.black.withValues(alpha: 0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ------------------------------------------------------------------
+          // SECTION 1: TURF INFO & STATUS
+          // ------------------------------------------------------------------
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(turf['name'],
+                      style: TextStyle(
+                        color: BMTTheme.brand,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(turf['address'],
+                      style: TextStyle(
+                        color: BMTTheme.white,
+                        // fontSize: 14,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              statusBadge(booking['date']),
+            ],
+          ),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 4),
+            child: Divider(color: BMTTheme.white50),
+          ),
+
+          // ------------------------------------------------------------------
+          // SECTION 2: BOOKING SLOT & DURATION
+          // ------------------------------------------------------------------
+          const Text("Booking Slot", style: TextStyle(color: BMTTheme.white50, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // DATE & TIME
+              Row(
+                children: [
+                  Icon(CupertinoIcons.calendar_today, color: BMTTheme.brand, size: 20),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(formatDisplayDate(booking['date']),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      Text("${formatDisplayTime(booking['start_time'])} - ${formatDisplayTime(booking['end_time'])}",
+                        style: TextStyle(fontSize: 14, color: BMTTheme.white.withValues(alpha: 0.7)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              // DURATION
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: BMTTheme.brand.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(CupertinoIcons.alarm, size: 18, color: BMTTheme.brand),
+                    const SizedBox(width: 6),
+                    Text("${booking['duration'].toString()} hr",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: BMTTheme.brand),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 4),
+            child: Divider(color: BMTTheme.white50),
+          ),
+
+          // ------------------------------------------------------------------
+          // SECTION 4: AMOUNT INFO
+          // ------------------------------------------------------------------
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Total amount
+              Flexible(
+                flex: 1,
+                child: Column(
+                  // crossAxisAlignment: isRightAligned ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                  children: [
+                    Text("Total Amount", style: TextStyle(color: BMTTheme.white50, fontSize: 12)),
+                    const SizedBox(height: 2),
+                    Text("₹${booking['total_amount']}",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: BMTTheme.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                flex: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text("Advance Paid", style: TextStyle(color: BMTTheme.white50, fontSize: 12)),
+                    const SizedBox(height: 2),
+                    Text("₹${booking['advance_amount']}",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                flex: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text("Remaining Due", style: TextStyle(color: BMTTheme.white50, fontSize: 12)),
+                    const SizedBox(height: 2),
+                    Text("₹${booking['advance_amount']}",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: CupertinoColors.destructiveRed,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 4),
+            child: Divider(color: BMTTheme.white50),
+          ),
+          // GOOGLE MAP LINK BUTTON
+          if (turf['map_link'] != null && turf['map_link'].toString().isNotEmpty)
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                onPressed: () {
+                  launchUrl(Uri.parse(turf['map_link']), mode: LaunchMode.externalApplication);
+                },
+                icon: Icon(CupertinoIcons.map, color: BMTTheme.brand),
+                label: Text("Open in Google Maps",
+                  style: TextStyle(
+                    color: BMTTheme.brand,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget statusBadge(String dateStr) {
     final today = DateTime.now();
     final bookingDate = DateTime.parse(dateStr);
 

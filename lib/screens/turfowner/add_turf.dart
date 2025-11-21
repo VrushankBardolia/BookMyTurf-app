@@ -219,10 +219,7 @@ class _AddTurfState extends State<AddTurf> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.not_interested, size: 36),
-                              Text(
-                                "No image selected",
-                                style: TextStyle(fontSize: 18),
-                              ),
+                              Text("No image selected", style: TextStyle(fontSize: 18)),
                             ],
                           ),
                         ),
@@ -234,9 +231,7 @@ class _AddTurfState extends State<AddTurf> {
                       height: 200,
                       width: MediaQuery.of(context).size.width,
                       child: ClipRRect(
-                        borderRadius: BorderRadiusGeometry.all(
-                          Radius.circular(12),
-                        ),
+                        borderRadius: BorderRadiusGeometry.all(Radius.circular(12)),
                         child: Image.file(_selectedImage!, fit: BoxFit.cover),
                       ),
                     ),
@@ -310,7 +305,7 @@ class _AddTurfState extends State<AddTurf> {
                     controller: mapLinkController,
                     hint: "Enter turf map link",
                     type: TextInputType.url,
-                    //validator: (val) => val == null || val.trim().isEmpty ? "Turf map link is required" : null,
+                    validator: (val) => val == null || val.trim().isEmpty ? "Turf map link is required" : null,
                   ),
                   SizedBox(height: 12),
 
@@ -388,6 +383,8 @@ class _AddTurfState extends State<AddTurf> {
                         return "Price per hour is required";
                       } else if (int.tryParse(val.trim())! < 100) {
                         return "Price per hour should be at least 100";
+                      } else {
+                        return null;
                       }
                     },
                   ),

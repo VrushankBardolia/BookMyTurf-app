@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'turfowner.dart';
 
 int parseInt(dynamic value, [int defaultValue = 0]) {
@@ -47,6 +49,26 @@ class Turf {
   });
 
   factory Turf.fromJson(Map<String, dynamic> json) {
+    List<String> parseAmenities(dynamic value) {
+      if (value == null) return [];
+
+      // If API returns JSON string → decode it
+      if (value is String) {
+        try {
+          return List<String>.from(jsonDecode(value));
+        } catch (_) {
+          return [];
+        }
+      }
+
+      // If already a list → convert
+      if (value is List) {
+        return List<String>.from(value.map((e) => e.toString()));
+      }
+
+      return [];
+    }
+
     return Turf(
       id: parseInt(json['id']),
       name: json['name'] ?? '',
@@ -56,20 +78,19 @@ class Turf {
       fullAddress: json['full_address'] ?? '',
       length: parseInt(json['length']),
       width: parseInt(json['width']),
-      mapLink: json['map_link']?.toString(),
+      mapLink: json['google_map_link']?.toString(), // FIXED
       openingTime: json['opening_time'] ?? '',
       closingTime: json['closing_time'] ?? '',
       pricePerHour: parseInt(json['price_per_hour']),
       upi: json['upi']?.toString() ?? '',
       phone: parseInt(json['phone']),
-      amenities: (json['amenities'] != null)
-          ? List<String>.from(json['amenities'])
-          : [],
+      amenities: parseAmenities(json['amenities']),   // FIXED
       createdAt: json['created_at'] ?? '',
       updatedAt: json['updated_at'] ?? '',
-      owner: json['owner'] != null ? TurfOwner.fromJson(json['owner']) : null,
+      owner: json['owner'] != null
+          ? TurfOwner.fromJson(json['owner'])
+          : null,
     );
   }
-
 
 }

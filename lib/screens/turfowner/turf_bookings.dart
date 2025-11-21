@@ -1,11 +1,11 @@
-import 'package:book_my_turf/util/api.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../util/colors.dart';
+import '/util/api.dart';
+import '/util/colors.dart';
 
 class TurfBookings extends StatefulWidget {
   const TurfBookings({super.key});
@@ -24,10 +24,9 @@ class _TurfBookingsState extends State<TurfBookings> {
     });
   }
 
-
   String formatDisplayDate(String yyyyMMdd) {
     final date = DateTime.parse(yyyyMMdd);
-    return DateFormat("dd MMMM y").format(date);
+    return DateFormat("dd MMM y").format(date);
   }
 
   String formatDisplayTime(String hhmmss) {
@@ -45,227 +44,253 @@ class _TurfBookingsState extends State<TurfBookings> {
     fetchUserEmail();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (userEmail == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    return FutureBuilder(
-      future: fetchTurfBookings(userEmail!),
-      builder: (context, snapshot){
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+  // --- Helper Widget for the Booking Card ---
+  Widget bookingCard(Map<String, dynamic> booking) {
+    final turf = booking['turf'];
+    final customer = booking['customer'];
 
-        if (snapshot.hasError) {
-          print(snapshot.error);
-          return Center(child: Text("Error: ${snapshot.error}"));
-        }
-
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text("No bookings yet"));
-        }
-
-        final bookings = snapshot.data!;
-
-
-        return ListView.builder(
-          itemCount: bookings.length,
-          itemBuilder: (context, i) {
-            final booking = bookings[i];
-            final turf = booking['turf'];
-            final customer = booking['customer'];
-            return Container(
-              margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: BMTTheme.black,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: BMTTheme.brand.withValues(alpha: 0.3)),
-              ),
-              padding: EdgeInsets.fromLTRB(12,12,12,8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // TURF NAME & STATUS BADGE
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(turf['name'],
-                          style: TextStyle(
-                            color: BMTTheme.brand,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        // Use a slightly lighter dark color for the card background for contrast
+        color: BMTTheme.black,
+        borderRadius: BorderRadius.circular(20),
+        // Subtle shadow for depth
+        boxShadow: [
+          BoxShadow(
+            color: BMTTheme.black.withValues(alpha: 0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ------------------------------------------------------------------
+          // SECTION 1: TURF INFO & STATUS
+          // ------------------------------------------------------------------
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(turf['name'],
+                      style: TextStyle(
+                        color: BMTTheme.brand,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
                       ),
-                      _buildDateBadge(booking['date']),
-                    ],
-                  ),
-
-                  // TURF ADDRESS
-                  Text(turf['address'], style: TextStyle(color: BMTTheme.white.withValues(alpha: 0.7)),),
-                  SizedBox(height: 4),
-
-                  // CUSTOMER DETAILS
-                  Text("Customer Details", style: TextStyle(color: BMTTheme.white50)),
-
-                  // CUSTOMER NAME
-                  Row(
-                    children: [
-                      Icon(CupertinoIcons.person, color: BMTTheme.brand, size: 20),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(customer['name'],
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4),
-
-                  // CUSTOMER PHONE
-                  InkWell(
-                    onTap: () => launchUrl(Uri(scheme: 'tel', path: customer['phone'])),
-                    child: Row(
-                      children: [
-                        Icon(CupertinoIcons.phone, color: BMTTheme.brand, size: 20),
-                        SizedBox(width: 8),
-                        Text("+91 ${customer['phone']}",
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ],
                     ),
-                  ),
-                  SizedBox(height: 4),
-
-                  // CUSTOMER EMAIL
-                  Row(
-                    children: [
-                      Icon(CupertinoIcons.mail, color: BMTTheme.brand, size: 20),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(customer['email'],
-                          style: TextStyle(color: Colors.white70, fontSize: 16),
-                        ),
+                    const SizedBox(height: 4),
+                    Text(turf['address'],
+                      style: TextStyle(
+                        color: BMTTheme.white,
+                        // fontSize: 14,
                       ),
-                    ],
-                  ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              statusBadge(booking['date']),
+            ],
+          ),
 
-                  // DIVIDER
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Divider(color: BMTTheme.white.withValues(alpha: 0.3)),
-                  ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 4),
+            child: Divider(color: BMTTheme.white50),
+          ),
 
-                  // DATE, SLOT TIMING & DURATION
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // ------------------------------------------------------------------
+          // SECTION 2: BOOKING SLOT & DURATION
+          // ------------------------------------------------------------------
+          const Text("Booking Slot", style: TextStyle(color: BMTTheme.white50, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // DATE & TIME
+              Row(
+                children: [
+                  Icon(CupertinoIcons.calendar_today, color: BMTTheme.brand, size: 20),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(CupertinoIcons.calendar_today, color: BMTTheme.brand, size: 20),
-                              SizedBox(width: 8),
-                              Text(formatDisplayDate(booking['date']),
-                                style: TextStyle(fontSize: 16, color: Colors.white),
-                              )
-                            ],
-                          ),
-
-                          SizedBox(height: 8),
-
-                          // Booking Time Row
-                          Row(
-                            children: [
-                              Icon(CupertinoIcons.clock, color: BMTTheme.brand, size: 20),
-                              SizedBox(width: 8),
-                              Text("${formatDisplayTime(booking['start_time'])} → ${formatDisplayTime(booking['end_time'])}",
-                                style: TextStyle(fontSize: 16, color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ],
+                      Text(formatDisplayDate(booking['date']),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                       ),
-
-                      // DURATION
-                      Column(
-                        children: [
-                          Text("Duration"),
-                          Row(
-                            children: [
-                              Icon(CupertinoIcons.alarm,size: 20, color: BMTTheme.brand,),
-                              SizedBox(width: 8,),
-                              Text("${booking['duration'].toString()} hr",style: TextStyle(fontSize: 16),),
-                            ],
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-
-                  // DIVIDER
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Divider(color: BMTTheme.white.withValues(alpha: 0.3)),
-                  ),
-
-                  // AMOUNT INFO
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Total Amount", style: TextStyle(color: BMTTheme.white50)),
-                          // SizedBox(height: 4),
-                          Text("₹${booking['total_amount']}",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text("Remaining Amount", style: TextStyle(color: BMTTheme.white50)),
-                          // SizedBox(height: 4),
-                          Text("₹${booking['advance_amount']}",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.redAccent,
-                            ),
-                          ),
-                        ],
+                      Text("${formatDisplayTime(booking['start_time'])} - ${formatDisplayTime(booking['end_time'])}",
+                        style: TextStyle(fontSize: 14, color: BMTTheme.white.withValues(alpha: 0.7)),
                       ),
                     ],
                   ),
                 ],
               ),
-            );
-          },
-        );
-      },
+
+              // DURATION
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: BMTTheme.brand.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(CupertinoIcons.alarm, size: 18, color: BMTTheme.brand),
+                    const SizedBox(width: 6),
+                    Text("${booking['duration'].toString()} hr",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: BMTTheme.brand),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 4),
+            child: Divider(color: BMTTheme.white50),
+          ),
+
+          // ------------------------------------------------------------------
+          // SECTION 3: CUSTOMER & CONTACT (Condensed)
+          // ------------------------------------------------------------------
+          const Text("Customer Info", style: TextStyle(color: BMTTheme.white50, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+
+          // CUSTOMER NAME & EMAIL (Simplified Row)
+          Row(
+            children: [
+              const Icon(CupertinoIcons.person, color: BMTTheme.white50, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(customer['name'], style: const TextStyle(fontSize: 16)),
+              ),
+              const SizedBox(width: 16),
+              const Icon(CupertinoIcons.mail, color: BMTTheme.white50, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(customer['email']),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // CUSTOMER PHONE (As a prominent action button)
+          SizedBox(
+            width: double.infinity,
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: BMTTheme.brand,
+              onPressed: () => launchUrl(Uri(scheme: 'tel', path: customer['phone'])),
+              borderRadius: BorderRadius.circular(10),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(CupertinoIcons.phone_fill, color: Colors.black, size: 20),
+                  const SizedBox(width: 8),
+                  Text("Call Customer (+91 ${customer['phone']})",
+                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // const Padding(
+          //   padding: EdgeInsets.symmetric(vertical: 12),
+          //   child: Divider(color: BMTTheme.white50),
+          // ),
+
+          SizedBox(height: 12),
+          // ------------------------------------------------------------------
+          // SECTION 4: AMOUNT INFO
+          // ------------------------------------------------------------------
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Total amount
+              Flexible(
+                flex: 1,
+                child: Column(
+                  // crossAxisAlignment: isRightAligned ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                  children: [
+                    Text("Total Amount", style: TextStyle(color: BMTTheme.white50, fontSize: 12)),
+                    const SizedBox(height: 2),
+                    Text("₹${booking['total_amount']}",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: BMTTheme.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                flex: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text("Advance Paid", style: TextStyle(color: BMTTheme.white50, fontSize: 12)),
+                    const SizedBox(height: 2),
+                    Text("₹${booking['advance_amount']}",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                flex: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text("Remaining Due", style: TextStyle(color: BMTTheme.white50, fontSize: 12)),
+                    const SizedBox(height: 2),
+                    Text("₹${booking['advance_amount']}",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: CupertinoColors.destructiveRed,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildDateBadge(String dateStr) {
+  // --- Helper Widget for the Status Badge ---
+  Widget statusBadge(String dateStr) {
     final today = DateTime.now();
     final bookingDate = DateTime.parse(dateStr);
+    final todayStartOfDay = DateTime(today.year, today.month, today.day);
+    final bookingStartOfDay = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
 
     String text;
     Color color;
 
-    if (bookingDate.isBefore(DateTime(today.year, today.month, today.day))) {
+    if (bookingStartOfDay.isBefore(todayStartOfDay)) {
       text = "Completed";
       color = Colors.green;
-    } else if (bookingDate.isAtSameMomentAs(DateTime(today.year, today.month, today.day))) {
+    } else if (bookingStartOfDay.isAtSameMomentAs(todayStartOfDay)) {
       text = "Today";
       color = Colors.orange;
     } else {
@@ -281,8 +306,43 @@ class _TurfBookingsState extends State<TurfBookings> {
         border: Border.all(color: color),
       ),
       child: Text(text,
-        style: TextStyle(color: color, fontWeight: FontWeight.w600),
+        style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (userEmail == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return FutureBuilder(
+      future: fetchTurfBookings(userEmail!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text("Error fetching bookings. Please try again."));
+        }
+
+        final bookings = snapshot.data;
+
+        if (bookings == null || bookings.isEmpty) {
+          return Center(
+            child: Text("No bookings found.", style: TextStyle(color: BMTTheme.white50)),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: bookings.length,
+          itemBuilder: (context, i) {
+            final booking = bookings[i];
+            return bookingCard(booking);
+          },
+        );
+      },
     );
   }
 }

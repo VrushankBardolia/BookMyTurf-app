@@ -11,6 +11,7 @@ class Input extends StatelessWidget {
   final String? Function(String?)? validator;
   final Color? bgColor;
   final bool? editable;
+  final bool? active;
 
   const Input({
     super.key,
@@ -22,7 +23,7 @@ class Input extends StatelessWidget {
     required this.type,
     this.validator,
     this.bgColor,
-    this.editable = true
+    this.editable = true, this.active
   });
 
   @override

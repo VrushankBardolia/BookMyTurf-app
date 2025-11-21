@@ -7,7 +7,7 @@ import '/screens/customer/explore_turfs.dart';
 import '/screens/customer/my_bookings.dart';
 import '/screens/turfowner/my_turfs.dart';
 import '/screens/turfowner/turf_bookings.dart';
-import 'profile.dart';
+import 'settings.dart';
 import '/util/colors.dart';
 
 class Home extends StatefulWidget {
@@ -38,7 +38,7 @@ class _HomeState extends State<Home> {
       case 1:
         appbarTitle = type=="turfowner" ? "Bookings" : "My Bookings";
       case 2:
-        appbarTitle = "Profile";
+        appbarTitle = "Settings";
     }
   }
 
@@ -62,7 +62,7 @@ class _HomeState extends State<Home> {
               onPressed: (){
                 Navigator.push(context, MaterialPageRoute(builder: (context)=>Search()));
               },
-              icon: Icon(Icons.search),
+              icon: Icon(CupertinoIcons.search),
             ),
         ],
       ),
@@ -89,7 +89,7 @@ class _HomeState extends State<Home> {
           if(type == "guest")
             Center(child: Text("Profile Page")),
           if(type == "turfowner" || type == "customer")
-            Profile(),
+            Settings(),
         ],
       ),
 
@@ -98,7 +98,7 @@ class _HomeState extends State<Home> {
           boxShadow: [
             BoxShadow(
               color: BMTTheme.brand.withValues(alpha: 0.25),
-              offset: Offset(0, -8),
+              offset: Offset(0, -4),
               blurRadius: 40,
             )
           ],
@@ -120,12 +120,12 @@ class _HomeState extends State<Home> {
               label: "Turfs",
             ),
             NavigationDestination(
-              icon: Icon(Icons.library_books),
+              icon: Icon(Icons.receipt),
               label: "Bookings",
             ),
             NavigationDestination(
-              icon: Icon(CupertinoIcons.person_solid),
-              label: "Profile",
+              icon: Icon(CupertinoIcons.gear),
+              label: "Settings",
             ),
           ],
         ),
