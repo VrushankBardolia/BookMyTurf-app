@@ -6,7 +6,8 @@ import 'package:intl/intl.dart';
 
 import '../model/turf.dart';
 
-final API = "http://10.138.64.58/bmt-api";
+final API = "http://10.56.126.58/bmt-api";
+// final API = "https://bmt-api.free.nf/";
 
 // CUSTOMER LOGIN
 Future<Map<String, dynamic>> customerLogin(
@@ -245,24 +246,7 @@ Future<Map<String, dynamic>> addTurf({
   }
 }
 
-// GET TURF BY ID
-Future<Turf> getTurfById(int id) async {
-  final url = Uri.parse("$API/turfs/get_turf_details.php?id=$id");
-  final response = await http.get(url);
-  print(response.body);
-
-  if (response.statusCode == 200) {
-    final body = jsonDecode(response.body);
-    if (body['status'] == 'success') {
-      return Turf.fromJson(body['data']);
-    } else {
-      throw Exception(body['message']);
-    }
-  } else {
-    throw Exception("Failed to find turf");
-  }
-}
-
+// GET ALL SLOTS
 Future<List<Map<String, dynamic>>> fetchSlots(int turfId, String selectedDate) async {
   final formattedDate = DateFormat('yyyy-MM-dd').format(
     DateFormat('d/M/yyyy').parse(selectedDate),
@@ -284,6 +268,7 @@ Future<List<Map<String, dynamic>>> fetchSlots(int turfId, String selectedDate) a
   }
 }
 
+// BOOK SLOT
 Future<Map<String, dynamic>> bookSlot({
   required int turfId,
   required String email,
@@ -397,7 +382,6 @@ Future<Map<String, dynamic>> deleteTurf(int id) async {
     throw Exception("Failed to delete turf");
   }
 }
-
 
 // UPDATE TURF
 Future<Map<String, dynamic>> updateTurf({
